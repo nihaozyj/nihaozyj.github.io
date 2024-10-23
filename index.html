@@ -2,38 +2,60 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>猫猫的个人主页</title>
-  <link rel="stylesheet" href="index.css">
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width,initial-scale=1'>
+
+	<title>Mini Helper</title>
+
+	<link rel='icon' type='image/png' href='/favicon.png'>
+	<link rel='stylesheet' href='/build/bundle.css'>
+	<link rel='stylesheet' href='/global.css'>
+
+	<script defer src='/build/bundle.js'></script>
+	<script>
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.register('combined-offline-cache.js').then(function (registration) {
+				console.log('Service Worker registered with scope:', registration.scope);
+			}).catch(function (error) {
+				console.log('Service Worker registration failed:', error);
+			});
+		}
+
+		self.addEventListener('install', function (event) {
+			event.waitUntil(
+				caches.open('my-cache').then(function (cache) {
+					return cache.addAll([
+						// 这里可以引入需要缓存的文件，例如：
+						// '/', // 缓存首页
+						// '/styles/main.css', // 缓存 CSS
+						// '/scripts/app.js' // 缓存 JS
+					]);
+				})
+			);
+		});
+
+		self.addEventListener('activate', function (event) {
+			// 激活后的逻辑
+		});
+
+		self.addEventListener('fetch', function (event) {
+			event.respondWith(
+				caches.match(event.request).then(function (response) {
+					// 处理请求
+					return response || fetch(event.request).then(function (response) {
+						// 更新缓存
+						return caches.open('my-cache').then(function (cache) {
+							cache.put(event.request, response.clone());
+							return response;
+						});
+					});
+				})
+			);
+		});
+	</script>
 </head>
 
-<body data-theme="dark">
-  <div class="container">
-    <h1>@热爱游戏的猫猫</h1>
-    <p>这里有最搞笑的游戏和最有趣的创意试玩，保证让你每天都有好心情。赶紧关注我，不要错过任何欢乐时刻，喵！</p>
-    <p># 如需了解猫猫的更多内容，请访问 :
-      <a href="https://github.com/nihaozyj">GitHub</a> /
-      <a href="https://gitee.com/easecat_gitee">Gitee</a> /
-      <a href="https://space.bilibili.com/39942486?spm_id_from=333.999.0.0">Bilibili</a> /
-      <a
-        href="https://www.douyin.com/search/%E7%83%AD%E7%88%B1%E6%B8%B8%E6%88%8F%E7%9A%84%E7%8C%AB%E7%8C%AB?aid=82d9ae08-8cc7-48fc-969b-d8a94dc80046&type=general">抖音</a>
-      /
-      <a href="https://www.youtube.com/@easecat_2023">Youtube</a>
-    </p>
-    <h2 class="line">游戏 & 文章</h2>
-    <div class="list"></div>
-  </div>
-  <script src="article_content_list.js"></script>
-  <script>
-    const list = document.querySelector('.list')
-    article_content_list.forEach(item => {
-      list.innerHTML += `<div class="item"><h2>[${item.date}]</h2><span> >>> </span><a href="${item.link}" target="_blank">${item.title}</a> </div>`
-    })
-    if (article_content_list.length === 0) {
-      list.innerHTML = '<p>暂无文章</p>'
-    }
-  </script>
+<body>
 </body>
 
 </html>
